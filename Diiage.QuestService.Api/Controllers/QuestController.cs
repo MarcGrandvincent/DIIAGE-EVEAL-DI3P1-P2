@@ -25,10 +25,10 @@ public class QuestController(IMediator mediator, IMapper mapper) : ControllerBas
     /// <response code="200">Retourne la liste des quêtes.</response>
     [HttpGet(ApiRoutes.Quests.Base)]
     [ProducesResponseType(typeof(IEnumerable<QuestResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<QuestResponse>>> GetQuests([FromQuery] bool? isActive = null,
+    public async Task<ActionResult<IEnumerable<QuestResponse>>> GetQuests([FromQuery] bool? isActive = null, [FromQuery] string? query = null,
         CancellationToken cancellationToken = default)
     {
-        var response = await mediator.Send(new GetQuestsQuery { IsActive = isActive }, cancellationToken);
+        var response = await mediator.Send(new GetQuestsQuery { IsActive = isActive, Query = query}, cancellationToken);
 
         return Ok(mapper.Map<IEnumerable<Quest>, IEnumerable<QuestResponse>>(response));
     }
