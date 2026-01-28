@@ -1,0 +1,3 @@
+[submodule "pierreproject-api-nugets"]
+	path = pierreproject-api-nugets
+	url = https://DIIAGE2026P1G5@dev.azure.com/DIIAGE2026P1G5/ProjectPierre/_git/pierreproject-api-nugets
