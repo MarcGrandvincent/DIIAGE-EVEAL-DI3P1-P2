@@ -1,4 +1,4 @@
-using Diiage.QuestService.Persistence.Entities;
+using Diiage.QuestService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Diiage.QuestService.Persistence;
