@@ -14,16 +14,13 @@ public class QuestProgressSaga : MassTransitStateMachine<QuestProgressSagaState>
     public QuestProgressSaga(ILogger<QuestProgressSaga> logger)
     {
         _logger = logger;
-
-        // Définir la propriété d'état
+        
         InstanceState(x => x.CurrentState);
 
-        // Configurer la corrélation des événements
         Event(() => GameCompleted, x => x.CorrelateById(ctx => ctx.Message.EventId));
         Event(() => ProgressUpdated, x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
         Event(() => ProgressFailed, x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
 
-        // Définir les transitions d'état
         Initially(
             When(GameCompleted)
                 .Then(ctx =>

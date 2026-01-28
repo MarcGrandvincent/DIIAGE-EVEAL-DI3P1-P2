@@ -2,7 +2,6 @@ using Diiage.QuestService.Domain.Entities;
 using Diiage.QuestService.Domain.Enums;
 using Diiage.QuestService.Domain.Events;
 using Diiage.QuestService.Persistence;
-using Diiage.QuestService.Persistence.Entities;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -20,7 +19,7 @@ public class GameCompletedConsumer(DbContextCore dbContext, ILogger<GameComplete
     public async Task Consume(ConsumeContext<GameCompletedEvent> context)
     {
         var message = context.Message;
-        var consumerType = nameof(GameCompletedConsumer);
+        const string consumerType = nameof(GameCompletedConsumer);
 
         logger.LogInformation(
             "[Consumer] Received event {EventId} - Player {PlayerId} completed {EventType}",
@@ -43,12 +42,8 @@ public class GameCompletedConsumer(DbContextCore dbContext, ILogger<GameComplete
         // === START TRANSACTION ===
         await using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var questsUpdated = 0;
-        var questsCompleted = 0;
-
         try
         {
-            // 1. Enregistrer dans l'Inbox (idempotence)
             var inboxEntry = new InboxState
             {
                 EventId = message.EventId,
@@ -57,11 +52,11 @@ public class GameCompletedConsumer(DbContextCore dbContext, ILogger<GameComplete
                 ProcessedAt = DateTime.UtcNow
             };
             dbContext.InboxStates.Add(inboxEntry);
-
-            // 2. Mettre à jour la progression des quêtes du joueur
+            
+            var questsUpdated = 0;
+            var questsCompleted = 0;
             (questsUpdated, questsCompleted) = await UpdatePlayerQuestProgress(message);
 
-            // 3. Sauvegarder et commit
             await dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
 
@@ -69,8 +64,7 @@ public class GameCompletedConsumer(DbContextCore dbContext, ILogger<GameComplete
                 "[Consumer] Event {EventId} processed successfully - Player {PlayerId} quest progress updated",
                 message.EventId,
                 message.PlayerId);
-
-            // 4. Publier l'événement de succès pour la Saga
+            
             await context.Publish(new QuestProgressUpdatedEvent
             {
                 CorrelationId = message.EventId,
@@ -129,7 +123,7 @@ public class GameCompletedConsumer(DbContextCore dbContext, ILogger<GameComplete
                          && pq.Status != QuestStatus.Claimed)
             .ToListAsync();
 
-        if (!playerQuests.Any())
+        if (playerQuests.Count == 0)
         {
             logger.LogInformation(
                 "[Consumer] No matching active quests found for Player {PlayerId} with type {EventType}",

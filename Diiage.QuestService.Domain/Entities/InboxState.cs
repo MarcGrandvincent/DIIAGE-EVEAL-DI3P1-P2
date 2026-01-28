@@ -1,4 +1,4 @@
-namespace Diiage.QuestService.Persistence.Entities;
+namespace Diiage.QuestService.Domain.Entities;
 
 /// <summary>
 /// Table Inbox pour garantir l'idempotence des messages consommés.
